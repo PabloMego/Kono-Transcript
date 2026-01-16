@@ -20,9 +20,9 @@ Esta aplicación toma archivos de audio (o grabaciones) y genera transcripciones
 
 ## Capturas / Imágenes
 
-![Captura 1](imgs\imgs_readme\captura1.png)
+![Captura 1](imgs/imgs_readme/captura1.png)
 
-![Captura 2](imgs\imgs_readme\captura2.png)
+![Captura 2](imgs/imgs_readme/captura2.png)
 
 ## Instalación
 
