@@ -1,0 +1,4 @@
+pywebview
+pyperclip
+openai-whisper
+pydub

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kono Studio AI Transcriptor Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#1054bf",
+                        "background-light": "#f8fafc",
+                        "background-dark": "#0f1115",
+                        "panel-dark": "#1a1d23",
+                        "border-dark": "#2d323d",
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                        mono: ["JetBrains Mono", "monospace"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.75rem",
+                    },
+                },
+            },
+        };
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Custom scrollbar for Chromium-based webview */
+        .custom-scrollbar::-webkit-scrollbar { width: 10px; height: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: rgba(45,50,61,0.65);
+            border-radius: 10px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(63,70,84,0.85);
+        }
+        /* Slightly thinner scrollbar for the transcript area to match UI */
+        .prose.custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        /* Make sure in dark mode the thumb contrasts nicely */
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(45,50,61,0.6); }
+        .glow-on-hover:hover { box-shadow: 0 0 15px rgba(16, 84, 191, 0.3); }
+    .sidebar-scroll { -webkit-overflow-scrolling: touch; touch-action: pan-y; }
+        /* Center transcript block and keep text left-aligned inside it */
+        #transcript-container { display: flex; justify-content: center; }
+        #transcript-content { max-width: 780px; margin: 0 auto; text-align: left; }
+        /* Each transcript row is a flex row; center items vertically for neat alignment */
+        #transcript-content .flex { display:flex; align-items: center; }
+        /* Fixed-width timestamp column */
+        #transcript-content .font-mono { width: 56px; flex: 0 0 56px; display:inline-flex; align-items:center; justify-content:flex-start; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-200 min-h-screen flex flex-col overflow-hidden">
+<!-- Toast container for in-app notifications (moved down to avoid header) -->
+<div id="toast-container" class="fixed top-20 right-6 z-50 flex flex-col gap-2"></div>
+<style>
+    /* Toast styles */
+    .kono-toast { min-width: 200px; max-width: 320px; background: rgba(15,17,21,0.95); color: #fff; padding: 10px 14px; border-radius: 8px; box-shadow: 0 6px 18px rgba(2,6,23,0.6); font-size: 13px; opacity: 0; transform: translateY(-6px); transition: all 240ms ease; }
+    .kono-toast.show { opacity: 1; transform: translateY(0); }
+    .kono-toast.kono-toast-error { background: rgba(185,28,28,0.95); }
+</style>
+<header class="h-16 border-b border-slate-200 dark:border-border-dark flex items-center justify-between px-4 md:px-8 bg-white dark:bg-panel-dark">
+<div class="flex items-center gap-3">
+<div>
+    <img src="imgs/kono_transcriptor_logo.png" alt="Kono Transcriptor" class="h-10 md:h-12 w-auto object-contain" loading="lazy">
+</div>
+<div>
+<h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Kono <span class="text-primary">Transcriptor</span></h1>
+<p class="text-xs text-slate-500 dark:text-slate-400">Versión 1.0.0</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+    <button id="mobile-menu-button" aria-label="Abrir menú" class="md:hidden p-2 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center mr-2">
+        <span class="material-icons-round">menu</span>
+    </button>
+<div class="text-right flex flex-col items-end">
+<p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Creado por</p>
+<a href="https://www.konostudio.es/" target="_blank" rel="noopener" aria-label="Visitar Kono Studio" class="mt-0.5">
+    <img src="imgs/konostudioes_text.png" alt="Kono Studio" class="h-4 md:h-5 object-contain" loading="lazy">
+</a>
+</div>
+<a href="https://www.konostudio.es/" target="_blank" rel="noopener" aria-label="Visitar Kono Studio">
+    <img src="imgs/kono_studio_logo.png" alt="Kono Studio" class="h-12 md:h-14 object-contain" loading="lazy">
+</a>
+</div>
+</header>
+<div id="overlay" class="fixed inset-0 bg-black/30 hidden z-30 md:hidden"></div>
+<main class="flex-1 flex overflow-hidden">
+<aside class="fixed md:static top-16 left-0 bottom-0 w-72 md:w-96 border-r border-slate-200 dark:border-border-dark bg-slate-50 dark:bg-panel-dark p-6 flex flex-col gap-6 overflow-y-auto custom-scrollbar sidebar-scroll z-40 transform -translate-x-full md:translate-x-0 transition-transform h-[calc(100vh-4rem)]">
+<section>
+<div class="flex items-center gap-2 mb-4">
+<span class="material-icons-round text-primary text-xl">folder_open</span>
+<h2 class="font-bold text-sm tracking-wide uppercase">Selección de Archivo</h2>
+</div>
+<div id="upload-area" class="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-6 flex flex-col items-center justify-center gap-3 transition-colors hover:border-primary/50 cursor-pointer bg-white dark:bg-background-dark/50">
+<span class="material-icons-round text-slate-400 text-3xl">upload_file</span>
+<div class="text-center">
+<p class="text-sm font-medium">Arrastra tu audio aquí</p>
+<p class="text-xs text-slate-500">o pulsa para examinar</p>
+</div>
+</div>
+<div class="mt-3 bg-white dark:bg-background-dark rounded-lg p-3 border border-slate-200 dark:border-border-dark flex items-center gap-2">
+<span class="material-icons-round text-slate-400 text-sm">audio_file</span>
+<span id="selected-filename" class="text-xs truncate text-slate-600 dark:text-slate-400">Ningún archivo seleccionado</span>
+<span id="clear-file" class="material-icons-round text-red-500 text-sm ml-auto cursor-pointer">close</span>
+</div>
+</section>
+<section>
+<div class="flex items-center gap-2 mb-4">
+<span class="material-icons-round text-primary text-xl">settings_suggest</span>
+<h2 class="font-bold text-sm tracking-wide uppercase">Configuración del Modelo</h2>
+</div>
+<div class="space-y-4">
+<div>
+<label class="text-xs font-semibold text-slate-500 mb-2 block uppercase">Tamaño del Modelo Whisper</label>
+<div class="grid grid-cols-1 gap-2">
+<label class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-background-dark hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-all">
+<input class="text-primary focus:ring-primary bg-transparent border-slate-400" name="model" type="radio" value="tiny"/>
+<span class="material-icons-round text-sm text-yellow-500">bolt</span>
+<span class="text-sm font-medium">Tiny (Ultra rápido)</span>
+</label>
+<label class="flex items-center gap-3 p-3 rounded-lg border border-primary/50 bg-primary/5 dark:bg-primary/5 cursor-pointer ring-1 ring-primary">
+<input checked class="text-primary focus:ring-primary bg-transparent border-slate-400" name="model" type="radio" value="base"/>
+<span class="material-icons-round text-sm text-primary">balance</span>
+<span class="text-sm font-medium">Base (Recomendado)</span>
+</label>
+<label class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-background-dark hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer">
+<input class="text-primary focus:ring-primary bg-transparent border-slate-400" name="model" type="radio" value="small"/>
+<span class="material-icons-round text-sm text-blue-500">gps_fixed</span>
+<span class="text-sm font-medium">Small (Preciso)</span>
+</label>
+<label class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-background-dark hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer">
+<input class="text-primary focus:ring-primary bg-transparent border-slate-400" name="model" type="radio" value="medium"/>
+<span class="material-icons-round text-sm text-purple-500">diamond</span>
+<span class="text-sm font-medium">Medium (Superior)</span>
+</label>
+<label class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-background-dark hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer">
+<input class="text-primary focus:ring-primary bg-transparent border-slate-400" name="model" type="radio" value="large"/>
+<span class="material-icons-round text-sm text-orange-500">workspace_premium</span>
+<span class="text-sm font-medium">Large (Óptimo)</span>
+</label>
+</div>
+</div>
+<div>
+<label class="text-xs font-semibold text-slate-500 mb-2 block uppercase">Idioma de detección</label>
+<select id="language-select" class="w-full bg-white dark:bg-background-dark border border-slate-200 dark:border-slate-700 rounded-lg text-sm p-2.5 focus:ring-primary focus:border-primary outline-none">
+<option>Detección Automática</option>
+<option>Español</option>
+<option>Inglés</option>
+<option>Francés</option>
+<option>Alemán</option>
+</select>
+</div>
+</div>
+</section>
+<section class="mt-auto pt-6 border-t border-slate-200 dark:border-slate-700">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-icons-round text-primary text-xl">play_circle</span>
+<h2 class="font-bold text-sm tracking-wide uppercase">Panel de Control</h2>
+</div>
+<div class="space-y-4">
+<button id="start-btn" class="w-full bg-primary hover:bg-primary/90 text-white hover:text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all glow-on-hover">
+<span class="material-icons-round">mic</span>
+                        Iniciar Transcripción
+                    </button>
+<div class="space-y-2">
+<div class="flex justify-between text-xs font-medium">
+<span>Progreso</span>
+<span id="progress-percent" class="text-primary">0%</span>
+</div>
+<div class="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+<div id="progress-bar-inner" class="h-full bg-primary w-0 shadow-[0_0_8px_rgba(16,84,191,0.6)]"></div>
+</div>
+<p id="progress-sub" class="text-[10px] text-center text-slate-500 italic">Listo</p>
+</div>
+</div>
+</section>
+</aside>
+</div>
+</div>
+<div class="flex-1 flex flex-col bg-white dark:bg-background-dark min-h-0">
+    <!-- Header fijo -->
+    <div class="flex items-center justify-between p-4 border-b border-slate-200 dark:border-border-dark">
+        <div class="flex gap-2">
+            <button id="copy-btn" class="px-3 py-1.5 rounded-md text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center gap-1.5 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700">
+                <span class="material-icons-round text-sm">content_copy</span>
+                Copiar Todo
+            </button>
+            <button id="export-btn" class="px-3 py-1.5 rounded-md text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center gap-1.5 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700">
+                <span class="material-icons-round text-sm">download</span>
+                Exportar TXT
+            </button>
+        </div>
+        
+    </div>
+    <!-- Panel scrolleable entre header y footer -->
+    <div class="flex-1 min-h-0 flex flex-col items-center custom-scrollbar" style="overflow-y:auto; max-height:calc(100vh - 168px);">
+        <div class="max-w-3xl w-full flex-1 flex flex-col p-8 min-h-0">
+            <div id="placeholder" class="text-center mb-12 select-none">
+                <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-50 dark:bg-panel-dark border border-slate-200 dark:border-border-dark mb-4">
+                    <span class="material-icons-round text-slate-300 dark:text-slate-600 text-4xl">description</span>
+                </div>
+                <h3 class="text-xl font-bold text-slate-400 dark:text-slate-500">Área de Transcripción</h3>
+                <p class="text-slate-400 dark:text-slate-600 max-w-sm mx-auto mt-2">Sube un archivo y pulsa "Iniciar" para comenzar a ver el texto aquí en tiempo real.</p>
+            </div>
+            <div id="transcript-container" class="space-y-6 w-full flex-1 min-h-0 flex flex-col">
+                <div id="transcript-content" class="prose text-sm leading-relaxed text-slate-700 dark:text-slate-300 bg-transparent select-text flex-1 min-h-0 w-full" style="user-select:text; -webkit-user-select:text; padding:0.5rem 0.5rem;"></div>
+            </div>
+        </div>
+    </div>
+    <!-- Footer fijo -->
+    <div class="h-10 border-t border-slate-200 dark:border-border-dark flex items-center px-4 justify-between bg-slate-50 dark:bg-panel-dark/50">
+        <div class="flex gap-4">
+            <span class="text-[10px] text-slate-400 uppercase tracking-widest font-medium">ESTADO: <span id="status-label">LISTO</span></span>
+            <span class="text-[10px] text-slate-400 uppercase tracking-widest font-medium">PALABRAS: <span id="word-count">0</span></span>
+        </div>
+        <div class="flex gap-4">
+            <!-- Help and dark mode buttons removed as requested -->
+        </div>
+    </div>
+</div>
+</div>
+</main>
+<script>
+    // Mobile menu toggles
+    const btn = document.getElementById('mobile-menu-button');
+    const aside = document.querySelector('aside');
+    const overlay = document.getElementById('overlay');
+    if (btn && aside && overlay) {
+        btn.addEventListener('click', () => {
+            const opened = aside.classList.toggle('translate-x-0');
+            overlay.classList.toggle('hidden', !opened);
+            document.body.classList.toggle('overflow-hidden', opened);
+        });
+        overlay.addEventListener('click', () => {
+            aside.classList.remove('translate-x-0');
+            overlay.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        });
+    }
+
+    // JS ↔ Python (pywebview) bindings
+    const uploadArea = document.getElementById('upload-area');
+    const filenameSpan = document.getElementById('selected-filename');
+    const startBtn = document.getElementById('start-btn');
+    const progressInner = document.getElementById('progress-bar-inner');
+    const progressPercent = document.getElementById('progress-percent');
+    const progressSub = document.getElementById('progress-sub');
+    const transcriptContent = document.getElementById('transcript-content');
+    const statusLabel = document.getElementById('status-label');
+    const wordCount = document.getElementById('word-count');
+    const copyBtn = document.getElementById('copy-btn');
+    const exportBtn = document.getElementById('export-btn');
+    const clearFileBtn = document.getElementById('clear-file');
+
+    let selectedPath = '';
+    let fullTranscript = '';
+
+    uploadArea.addEventListener('click', () => {
+        if (window.pywebview && window.pywebview.api) {
+            window.pywebview.api.open_file_dialog().then(path => {
+                if (path) {
+                    selectedPath = path;
+                    filenameSpan.textContent = path.split(/\\|\//).pop();
+                }
+            });
+        } else {
+            alert('API no disponible. Ejecuta la aplicación con WebView (pywebview).');
+        }
+    });
+
+    clearFileBtn.addEventListener('click', () => {
+        selectedPath = '';
+        filenameSpan.textContent = 'Ningún archivo seleccionado';
+        // También limpiar la transcripción y estado cuando se quita el audio
+        transcriptContent.innerHTML = '';
+        fullTranscript = '';
+        wordCount.textContent = '0';
+        statusLabel.textContent = 'LISTO';
+        progressInner.style.width = '0%';
+        progressPercent.textContent = '0%';
+        progressSub.textContent = 'Listo';
+        // mostrar placeholder
+        const ph = document.getElementById('placeholder');
+        if (ph) ph.style.display = '';
+    });
+
+    startBtn.addEventListener('click', () => {
+        if (!selectedPath) { showToast('Selecciona un archivo primero', 'error'); return; }
+        // determine model
+        const modelRadio = document.querySelector('input[name="model"]:checked');
+        const model = modelRadio ? modelRadio.value : 'base';
+        const lang = document.getElementById('language-select').value;
+        transcriptContent.innerHTML = '';
+        fullTranscript = '';
+        wordCount.textContent = '0';
+        statusLabel.textContent = 'TRANSCRIBIENDO';
+        progressSub.textContent = 'Procesando...';
+        // ensure placeholder visible until first chunk arrives
+        const ph = document.getElementById('placeholder');
+        if (ph) ph.style.display = '';
+        if (window.pywebview && window.pywebview.api) {
+            window.pywebview.api.start_transcription(selectedPath, model, lang).then(r => {
+                // started
+            });
+        } else {
+            alert('API no disponible. Ejecuta la aplicación con WebView (pywebview).');
+        }
+    });
+
+    // Handlers called from Python via evaluate_js
+    window.onTranscriptionChunk = function(chunk) {
+        try {
+            // hide placeholder on first received chunk
+            const ph = document.getElementById('placeholder');
+            if (ph && ph.style.display !== 'none') ph.style.display = 'none';
+            const ts = typeof chunk.timestamp !== 'undefined' ? '[' + Math.floor(chunk.timestamp/60).toString().padStart(2,'0') + ':' + Math.floor(chunk.timestamp%60).toString().padStart(2,'0') + ']' : '';
+            const wrap = document.createElement('div');
+            wrap.className = 'flex gap-4';
+            const stamp = document.createElement('span');
+            stamp.className = 'font-mono text-xs text-primary shrink-0';
+            stamp.textContent = ts;
+            const p = document.createElement('p');
+            p.className = 'text-sm leading-relaxed';
+            p.textContent = chunk.text || '';
+            wrap.appendChild(stamp);
+            wrap.appendChild(p);
+            transcriptContent.appendChild(wrap);
+            fullTranscript += (ts + ' ' + (chunk.text || '') + '\n\n');
+            // update word count
+            const wc = fullTranscript.trim().split(/\s+/).filter(Boolean).length;
+            wordCount.textContent = wc.toString();
+            // scroll
+            transcriptContent.parentElement.scrollTop = transcriptContent.parentElement.scrollHeight;
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    window.onTranscriptionProgress = function(p) {
+        progressInner.style.width = p + '%';
+        progressPercent.textContent = p + '%';
+    };
+
+    window.onTranscriptionDone = function() {
+        statusLabel.textContent = 'LISTO';
+        progressSub.textContent = 'Completado';
+        progressInner.style.width = '100%';
+        progressPercent.textContent = '100%';
+    };
+
+    window.onTranscriptionError = function(msg) {
+        statusLabel.textContent = 'ERROR';
+        progressSub.textContent = 'Error: ' + msg;
+        alert('Error en transcripción: ' + msg);
+    };
+
+    // Simple toast notification helper
+    function showToast(message, type) {
+        try {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const t = document.createElement('div');
+            t.className = 'kono-toast';
+            if (type === 'error') t.classList.add('kono-toast-error');
+            t.textContent = message;
+            container.appendChild(t);
+            // allow CSS transition
+            requestAnimationFrame(() => t.classList.add('show'));
+            // remove after 3s
+            setTimeout(() => {
+                t.classList.remove('show');
+                setTimeout(() => { try { container.removeChild(t); } catch(e){} }, 260);
+            }, 3000);
+        } catch (e) { console.error(e); }
+    }
+
+    copyBtn.addEventListener('click', () => {
+        if (window.pywebview && window.pywebview.api) {
+            window.pywebview.api.copy_all(fullTranscript).then(ok => {
+                if (ok) showToast('Copiado al portapapeles'); else showToast('No se pudo copiar', 'error');
+            });
+        }
+    });
+
+    exportBtn.addEventListener('click', () => {
+        if (window.pywebview && window.pywebview.api) {
+            window.pywebview.api.export_txt(fullTranscript).then(path => {
+                if (path) showToast('Guardado en: ' + path); else showToast('No se guardó el archivo', 'error');
+            });
+        }
+    });
+</script>
+<div class="fixed bottom-12 left-6 z-20 pointer-events-none">
+<div class="flex items-center gap-2 opacity-50 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-300">
+<div class="w-8 h-8 rounded-md bg-slate-800 flex items-center justify-center border border-white/10">
+<span class="material-icons-round text-white text-lg">category</span>
+</div>
+<span class="text-[10px] font-bold tracking-widest uppercase text-slate-500">Program created by Kono Studio</span>
+</div>
+</div>
+
+</body></html>
