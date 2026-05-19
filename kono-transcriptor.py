@@ -1,3 +1,10 @@
+# Cargar e inyectar ffmpeg/ffprobe estáticos en el PATH
+try:
+    import static_ffmpeg
+    static_ffmpeg.add_paths()
+except Exception:
+    pass
+
 import webview
 import threading
 import time
@@ -10,14 +17,14 @@ try:
     if os.name == 'nt':
         import subprocess as _subprocess
         _CREATE_NO_WINDOW = 0x08000000
-        _orig_popen = _subprocess.Popen
+        _orig_init = _subprocess.Popen.__init__
 
-        def _popen_no_window(*args, **kwargs):
+        def _new_init(self, *args, **kwargs):
             if 'creationflags' not in kwargs:
                 kwargs['creationflags'] = _CREATE_NO_WINDOW
-            return _orig_popen(*args, **kwargs)
+            _orig_init(self, *args, **kwargs)
 
-        _subprocess.Popen = _popen_no_window
+        _subprocess.Popen.__init__ = _new_init
 except Exception:
     pass
 
@@ -140,18 +147,92 @@ class API:
         return {"ok": True}
 
     def _transcription_worker(self, path, model_name, language):
+        # Helper to write to log
+        def write_log(msg):
+            try:
+                with open(os.path.join(os.path.dirname(__file__), 'kono.log'), 'a', encoding='utf-8') as f:
+                    import time
+                    f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} - {msg}\n")
+            except Exception:
+                pass
+
+        write_log(f"Transcription worker started for: {path} using model {model_name} and language {language}")
         try:
             # Cargar whisper de forma diferida para no bloquear el inicio
             try:
                 import whisper
                 local_whisper = whisper
                 whisper_available_local = True
-            except Exception:
+                write_log("whisper imported successfully")
+            except Exception as e:
+                import traceback
+                write_log(f"Import whisper failed: {e}\n{traceback.format_exc()}")
                 local_whisper = None
                 whisper_available_local = False
 
             if whisper_available_local:
-                model = local_whisper.load_model(model_name or "base")
+                # Determinar ruta de guardado del modelo
+                download_root = os.path.join(os.path.expanduser("~"), ".cache", "whisper")
+                download_root = os.getenv("XDG_CACHE_HOME", download_root)
+                os.makedirs(download_root, exist_ok=True)
+                
+                # Obtener url del modelo
+                url = local_whisper._MODELS.get(model_name or "base")
+                if url:
+                    filename = os.path.basename(url)
+                    model_path = os.path.join(download_root, filename)
+                    
+                    if not os.path.exists(model_path):
+                        write_log(f"Downloading model {model_name} from {url} to {model_path}")
+                        import urllib.request
+                        
+                        try:
+                            if self.window:
+                                self.window.title = f"Kono Transcriptor - Descargando modelo {model_name} (0%)"
+                                self.window.evaluate_js("window.onTranscriptionProgress(0);")
+                                self.window.evaluate_js(f"document.getElementById('progress-sub').textContent = 'Descargando modelo {model_name}... 0%';")
+                                self.window.evaluate_js("document.getElementById('status-label').textContent = 'DESCARGANDO MODELO';")
+                        except Exception:
+                            pass
+                            
+                        def reporthook(block_num, block_size, total_size):
+                            if total_size > 0:
+                                downloaded = block_num * block_size
+                                percent = int((downloaded / total_size) * 100)
+                                percent = min(percent, 100)
+                                try:
+                                    if self.window:
+                                        self.window.title = f"Kono Transcriptor - Descargando modelo {model_name} ({percent}%)"
+                                        self.window.evaluate_js(f"window.onTranscriptionProgress({percent});")
+                                        self.window.evaluate_js(f"document.getElementById('progress-sub').textContent = 'Descargando modelo {model_name}... {percent}%';")
+                                except Exception:
+                                    pass
+                                    
+                        temp_path = model_path + ".tmp"
+                        try:
+                            urllib.request.urlretrieve(url, temp_path, reporthook=reporthook)
+                            if os.path.exists(temp_path):
+                                os.replace(temp_path, model_path)
+                            write_log(f"Model {model_name} downloaded successfully")
+                        except Exception as dl_err:
+                            write_log(f"Error downloading model: {dl_err}")
+                            if os.path.exists(temp_path):
+                                try:
+                                    os.unlink(temp_path)
+                                except Exception:
+                                    pass
+                            raise dl_err
+
+                try:
+                    if self.window:
+                        self.window.title = "Kono Transcriptor - Cargando modelo..."
+                        self.window.evaluate_js("window.onTranscriptionProgress(0);")
+                        self.window.evaluate_js("document.getElementById('progress-sub').textContent = 'Cargando modelo...';")
+                        self.window.evaluate_js("document.getElementById('status-label').textContent = 'CARGANDO MODELO';")
+                except Exception:
+                    pass
+
+                model = local_whisper.load_model(model_name or "base", download_root=download_root)
 
                 # Intento de troceado usando pydub. Si falla, vuelve al modo anterior por duración.
                 try:
@@ -164,6 +245,14 @@ class API:
                     overlap_ms = 1000
                     step = max(1000, chunk_ms - overlap_ms)
                     positions = list(range(0, total_ms, step))
+
+                    try:
+                        if self.window:
+                            self.window.title = "Kono Transcriptor - Transcribiendo..."
+                            self.window.evaluate_js("document.getElementById('status-label').textContent = 'TRANSCRIBIENDO';")
+                            self.window.evaluate_js("document.getElementById('progress-sub').textContent = 'Transcribiendo...';")
+                    except Exception:
+                        pass
 
                     processed_ms = 0
                     for idx, start_ms in enumerate(positions):
@@ -225,6 +314,7 @@ class API:
 
                     try:
                         if self.window:
+                            self.window.title = "Kono Transcriptor"
                             self.window.evaluate_js('window.onTranscriptionDone();')
                     except Exception:
                         pass
@@ -281,6 +371,14 @@ class API:
                         except Exception:
                             pass
 
+                    try:
+                        if self.window:
+                            self.window.title = "Kono Transcriptor - Transcribiendo..."
+                            self.window.evaluate_js("document.getElementById('status-label').textContent = 'TRANSCRIBIENDO';")
+                            self.window.evaluate_js("document.getElementById('progress-sub').textContent = 'Transcribiendo...';")
+                    except Exception:
+                        pass
+
                     t = threading.Thread(target=progress_by_duration, daemon=True)
                     t.start()
 
@@ -319,6 +417,7 @@ class API:
                             pass
                     try:
                         if self.window:
+                            self.window.title = "Kono Transcriptor"
                             self.window.evaluate_js('window.onTranscriptionDone();')
                     except Exception:
                         pass
@@ -350,8 +449,11 @@ class API:
                 except Exception:
                     pass
         except Exception as e:
+            import traceback
+            write_log(f"Uncaught exception in _transcription_worker: {e}\n{traceback.format_exc()}")
             try:
                 if self.window:
+                    self.window.title = "Kono Transcriptor"
                     self.window.evaluate_js(f'window.onTranscriptionError({json.dumps(str(e))});')
             except Exception:
                 pass

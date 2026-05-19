@@ -99,3 +99,171 @@
 2026-01-16 01:08:51 - UI loaded event received
 2026-01-16 01:08:51 - Watchdog: UI loaded successfully
 2026-01-16 01:09:17 - Window closed by user
+2026-05-19 09:13:25 - Window created
+2026-05-19 09:13:25 - Watchdog started, waiting up to 12s for UI load
+2026-05-19 09:13:25 - Starting webview
+2026-05-19 09:13:28 - UI loaded event received
+2026-05-19 09:13:28 - Watchdog: UI loaded successfully
+2026-05-19 09:15:47 - Window created
+2026-05-19 09:15:47 - Starting webview
+2026-05-19 09:15:47 - Watchdog started, waiting up to 12s for UI load
+2026-05-19 09:15:50 - UI loaded event received
+2026-05-19 09:15:50 - Watchdog: UI loaded successfully
+2026-05-19 09:15:52 - Transcription worker started for: C:/Users/medin/Downloads/TE BAITEO JEJE GOD 🤡🤣.m4a using model base and language auto
+2026-05-19 09:15:53 - Import whisper failed: function() argument 'code' must be code, not str
+Traceback (most recent call last):
+  File "C:\Users\medin\Downloads\Kono-Transcript\kono-transcriptor.py", line 156, in _transcription_worker
+    import whisper
+  File "C:\Users\medin\Downloads\Kono-Transcript\venv\Lib\site-packages\whisper\__init__.py", line 8, in <module>
+    import torch
+  File "C:\Users\medin\Downloads\Kono-Transcript\venv\Lib\site-packages\torch\__init__.py", line 2291, in <module>
+    from torch import (
+    ...<30 lines>...
+    )
+  File "C:\Users\medin\Downloads\Kono-Transcript\venv\Lib\site-packages\torch\nested\__init__.py", line 21, in <module>
+    from ._internal.nested_tensor import _rebuild_njt, NestedTensor as _NestedTensor
+  File "C:\Users\medin\Downloads\Kono-Transcript\venv\Lib\site-packages\torch\nested\_internal\nested_tensor.py", line 7, in <module>
+    from torch.nested._internal.nested_int import NestedIntNode
+  File "C:\Users\medin\Downloads\Kono-Transcript\venv\Lib\site-packages\torch\nested\_internal\nested_int.py", line 4, in <module>
+    from torch.fx.experimental._constant_symnode import ConstantIntNode
+  File "C:\Users\medin\Downloads\Kono-Transcript\venv\Lib\site-packages\torch\fx\__init__.py", line 88, in <module>
+    from torch.fx._symbolic_trace import (  # noqa: F401
+    ...<5 lines>...
+    )
+  File "C:\Users\medin\Downloads\Kono-Transcript\venv\Lib\site-packages\torch\fx\_symbolic_trace.py", line 27, in <module>
+    from .proxy import ParameterProxy, Proxy, Scope, ScopeContextManager, TracerBase
+  File "C:\Users\medin\Downloads\Kono-Transcript\venv\Lib\site-packages\torch\fx\proxy.py", line 21, in <module>
+    from torch._logging import getArtifactLogger
+  File "C:\Users\medin\Downloads\Kono-Transcript\venv\Lib\site-packages\torch\_logging\__init__.py", line 7, in <module>
+    import torch._logging._registrations
+  File "C:\Users\medin\Downloads\Kono-Transcript\venv\Lib\site-packages\torch\_logging\_registrations.py", line 2, in <module>
+    from ._internal import register_artifact, register_log
+  File "C:\Users\medin\Downloads\Kono-Transcript\venv\Lib\site-packages\torch\_logging\_internal.py", line 26, in <module>
+    from torch._guards import CompileId
+  File "C:\Users\medin\Downloads\Kono-Transcript\venv\Lib\site-packages\torch\_guards.py", line 11, in <module>
+    import unittest.mock
+  File "C:\Program Files\Python314\Lib\unittest\mock.py", line 27, in <module>
+    import asyncio
+  File "C:\Program Files\Python314\Lib\asyncio\__init__.py", line 45, in <module>
+    from .windows_events import *
+  File "C:\Program Files\Python314\Lib\asyncio\windows_events.py", line 26, in <module>
+    from . import windows_utils
+  File "C:\Program Files\Python314\Lib\asyncio\windows_utils.py", line 125, in <module>
+    class Popen(subprocess.Popen):
+    ...<47 lines>...
+                    os.close(stderr_wfd)
+TypeError: function() argument 'code' must be code, not str
+
+2026-05-19 09:16:13 - Window created
+2026-05-19 09:16:13 - Watchdog started, waiting up to 12s for UI load
+2026-05-19 09:16:13 - Starting webview
+2026-05-19 09:16:34 - Window created
+2026-05-19 09:16:34 - Watchdog started, waiting up to 12s for UI load
+2026-05-19 09:16:34 - Starting webview
+2026-05-19 09:16:39 - UI loaded event received
+2026-05-19 09:16:39 - Watchdog: UI loaded successfully
+2026-05-19 09:16:41 - Transcription worker started for: C:/Users/medin/Downloads/TE BAITEO JEJE GOD 🤡🤣.m4a using model base and language auto
+2026-05-19 09:16:43 - whisper imported successfully
+2026-05-19 09:16:55 - Uncaught exception in _transcription_worker: [WinError 2] El sistema no puede encontrar el archivo especificado
+Traceback (most recent call last):
+  File "C:\Users\medin\Downloads\Kono-Transcript\venv\Lib\site-packages\pydub\utils.py", line 14, in <module>
+    import audioop
+ModuleNotFoundError: No module named 'audioop'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\medin\Downloads\Kono-Transcript\kono-transcriptor.py", line 171, in _transcription_worker
+    from pydub import AudioSegment
+  File "C:\Users\medin\Downloads\Kono-Transcript\venv\Lib\site-packages\pydub\__init__.py", line 1, in <module>
+    from .audio_segment import AudioSegment
+  File "C:\Users\medin\Downloads\Kono-Transcript\venv\Lib\site-packages\pydub\audio_segment.py", line 11, in <module>
+    from .utils import mediainfo_json, fsdecode
+  File "C:\Users\medin\Downloads\Kono-Transcript\venv\Lib\site-packages\pydub\utils.py", line 16, in <module>
+    import pyaudioop as audioop
+ModuleNotFoundError: No module named 'pyaudioop'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\medin\Downloads\Kono-Transcript\kono-transcriptor.py", line 302, in _transcription_worker
+    result = model.transcribe(path)
+  File "C:\Users\medin\Downloads\Kono-Transcript\venv\Lib\site-packages\whisper\transcribe.py", line 139, in transcribe
+    mel = log_mel_spectrogram(audio, model.dims.n_mels, padding=N_SAMPLES)
+  File "C:\Users\medin\Downloads\Kono-Transcript\venv\Lib\site-packages\whisper\audio.py", line 140, in log_mel_spectrogram
+    audio = load_audio(audio)
+  File "C:\Users\medin\Downloads\Kono-Transcript\venv\Lib\site-packages\whisper\audio.py", line 58, in load_audio
+    out = run(cmd, capture_output=True, check=True).stdout
+          ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python314\Lib\subprocess.py", line 554, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\medin\Downloads\Kono-Transcript\kono-transcriptor.py", line 18, in _new_init
+    _orig_init(self, *args, **kwargs)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python314\Lib\subprocess.py", line 1038, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        pass_fds, cwd, env,
+                        ^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+                        gid, gids, uid, umask,
+                        ^^^^^^^^^^^^^^^^^^^^^^
+                        start_new_session, process_group)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python314\Lib\subprocess.py", line 1552, in _execute_child
+    hp, ht, pid, tid = _winapi.CreateProcess(executable, args,
+                       ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+                             # no special security
+                             ^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+                             cwd,
+                             ^^^^
+                             startupinfo)
+                             ^^^^^^^^^^^^
+FileNotFoundError: [WinError 2] El sistema no puede encontrar el archivo especificado
+
+2026-05-19 09:17:22 - Window closed by user
+2026-05-19 09:19:24 - Window created
+2026-05-19 09:19:24 - Watchdog started, waiting up to 12s for UI load
+2026-05-19 09:19:24 - Starting webview
+2026-05-19 09:19:26 - UI loaded event received
+2026-05-19 09:19:26 - Watchdog: UI loaded successfully
+2026-05-19 09:19:29 - Transcription worker started for: C:/Users/medin/Downloads/TE BAITEO JEJE GOD 🤡🤣.m4a using model base and language auto
+2026-05-19 09:19:30 - whisper imported successfully
+2026-05-19 09:19:39 - Transcription worker started for: C:/Users/medin/Downloads/TE BAITEO JEJE GOD 🤡🤣.m4a using model large and language auto
+2026-05-19 09:19:39 - whisper imported successfully
+2026-05-19 09:19:47 - Transcription worker started for: C:/Users/medin/Downloads/TE BAITEO JEJE GOD 🤡🤣.m4a using model large and language auto
+2026-05-19 09:19:47 - whisper imported successfully
+2026-05-19 09:19:48 - Transcription worker started for: C:/Users/medin/Downloads/TE BAITEO JEJE GOD 🤡🤣.m4a using model base and language auto
+2026-05-19 09:19:48 - whisper imported successfully
+2026-05-19 09:19:49 - Transcription worker started for: C:/Users/medin/Downloads/TE BAITEO JEJE GOD 🤡🤣.m4a using model base and language auto
+2026-05-19 09:19:49 - whisper imported successfully
+2026-05-19 09:19:52 - Transcription worker started for: C:/Users/medin/Downloads/TE BAITEO JEJE GOD 🤡🤣.m4a using model large and language auto
+2026-05-19 09:19:52 - whisper imported successfully
+2026-05-19 09:20:23 - Transcription worker started for: C:/Users/medin/Downloads/TE BAITEO JEJE GOD 🤡🤣.m4a using model large and language auto
+2026-05-19 09:20:23 - whisper imported successfully
+2026-05-19 09:20:26 - Transcription worker started for: C:/Users/medin/Downloads/TE BAITEO JEJE GOD 🤡🤣.m4a using model large and language auto
+2026-05-19 09:20:26 - whisper imported successfully
+2026-05-19 09:20:29 - Window closed by user
+2026-05-19 09:21:56 - Window created
+2026-05-19 09:21:56 - Starting webview
+2026-05-19 09:21:56 - Watchdog started, waiting up to 12s for UI load
+2026-05-19 09:21:58 - UI loaded event received
+2026-05-19 09:21:58 - Watchdog: UI loaded successfully
+2026-05-19 09:22:04 - Transcription worker started for: C:/Users/medin/Downloads/TE BAITEO JEJE GOD 🤡🤣.m4a using model medium and language auto
+2026-05-19 09:22:05 - whisper imported successfully
+2026-05-19 09:22:05 - Downloading model medium from https://openaipublic.azureedge.net/main/whisper/models/345ae4da62f9b3d59415adc60127b97c714f32e89e936602e85993674d08dcb1/medium.pt to C:\Users\medin\.cache\whisper\medium.pt
+2026-05-19 09:23:07 - Window closed by user
+2026-05-19 09:23:17 - Window created
+2026-05-19 09:23:17 - Watchdog started, waiting up to 12s for UI load
+2026-05-19 09:23:17 - Starting webview
+2026-05-19 09:23:27 - Window created
+2026-05-19 09:23:27 - Watchdog started, waiting up to 12s for UI load
+2026-05-19 09:23:27 - Starting webview
+2026-05-19 09:23:45 - Window created
+2026-05-19 09:23:45 - Starting webview
+2026-05-19 09:23:45 - Watchdog started, waiting up to 12s for UI load
+2026-05-19 09:23:47 - UI loaded event received
+2026-05-19 09:23:47 - Watchdog: UI loaded successfully
+2026-05-19 09:24:09 - Window closed by user
